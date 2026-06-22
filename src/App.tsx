@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { UserProfile, Product, Order } from './types';
-import { onSnapshot, collection } from 'firebase/firestore';
-import { db } from './firebase';
 import {
   updateUserProfile,
   addProductToDb,
@@ -11,7 +9,6 @@ import {
   updateOrderInDb,
   logOutUser
 } from './services/db';
-import { SEEDED_PRODUCTS } from './data';
 import SplashScreen from './components/SplashScreen';
 import LoginScreen from './components/LoginScreen';
 import RegisterScreen from './components/RegisterScreen';
@@ -32,50 +29,59 @@ export default function App() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   
-  // Initialize and Sync Realtime Collections from Firestore
+  // Initialize and Sync Realtime Collections from Express Backend Proxy (Hides Secrets)
   useEffect(() => {
-    // 1. Sync users
-    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const usersList = snapshot.docs.map(doc => doc.data() as UserProfile);
-      setAllUsers(usersList);
-      
-      // Auto-sync current logged-in user details if any changes occur in DB (e.g. Owner approves)
-      const stored = localStorage.getItem('kb_current_user');
-      if (stored) {
-        const parsed = JSON.parse(stored) as UserProfile;
-        const dbUser = usersList.find(u => u.uid === parsed.uid);
-        if (dbUser) {
-          setCurrentUser(dbUser);
-          localStorage.setItem('kb_current_user', JSON.stringify(dbUser));
+    let active = true;
+
+    const syncData = async () => {
+      try {
+        const response = await fetch('/api/sync');
+        if (!response.ok) throw new Error('Data sync failure');
+        const data = await response.json();
+        
+        if (!active) return;
+
+        // 1. Sync users
+        if (data.users) {
+          setAllUsers(data.users);
+          
+          // Auto-sync current logged-in user details if any changes occur in DB (e.g. Owner approves)
+          const stored = localStorage.getItem('kb_current_user');
+          if (stored) {
+            const parsed = JSON.parse(stored) as UserProfile;
+            const dbUser = data.users.find((u: any) => u.uid === parsed.uid);
+            if (dbUser) {
+              setCurrentUser(dbUser);
+              localStorage.setItem('kb_current_user', JSON.stringify(dbUser));
+            }
+          }
         }
-      }
-    });
 
-    // 2. Sync products (Auto-seed if Firestore is empty)
-    const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
-      if (snapshot.empty) {
-        // Auto-seed baseline items on cold start
-        SEEDED_PRODUCTS.forEach(async (p) => {
-          const { id, ...cleanProduct } = p;
-          await addProductToDb(cleanProduct);
-        });
-        return;
-      }
-      const productsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setAllProducts(productsList);
-    });
+        // 2. Sync products
+        if (data.products) {
+          setAllProducts(data.products);
+        }
 
-    // 3. Sync orders (sorted by newest placement)
-    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
-      const ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-      ordersList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setAllOrders(ordersList);
-    });
+        // 3. Sync orders (sorted by newest placement)
+        if (data.orders) {
+          const sortedOrders = [...data.orders];
+          sortedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setAllOrders(sortedOrders);
+        }
+      } catch (err) {
+        console.error('Error syncing backend database:', err);
+      }
+    };
+
+    // Initial load
+    syncData();
+
+    // Responsive polling interval (every 3 seconds) for a native Realtime database feel
+    const intervalId = setInterval(syncData, 3000);
 
     return () => {
-      unsubUsers();
-      unsubProducts();
-      unsubOrders();
+      active = false;
+      clearInterval(intervalId);
     };
   }, []);
 
