@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserProfile } from '../types';
-import { getUsers } from '../data';
+import { signInWithPhone } from '../services/db';
 import { Phone, Lock, Store, Key, UserCheck, AlertTriangle } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -14,9 +14,7 @@ export default function LoginScreen({ onLoginSuccess, onNavigateToRegister }: Lo
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const registeredUsers = getUsers();
-
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -26,25 +24,27 @@ export default function LoginScreen({ onLoginSuccess, onNavigateToRegister }: Lo
     }
 
     setLoading(true);
-    setTimeout(() => {
-      // Find user
-      const foundUser = registeredUsers.find(u => u.phone === phone || u.phone === phone.replace('+91', '').trim());
-      setLoading(false);
-
-      if (foundUser) {
-        onLoginSuccess(foundUser);
-      } else {
-        setError(`This number is not registered on KirranaBazzar yet. Registered number or choose a demo account below!`);
-      }
-    }, 800);
-  };
-
-  const handleQuickLogin = (user: UserProfile) => {
-    setLoading(true);
-    setTimeout(() => {
+    try {
+      const user = await signInWithPhone(phone.trim());
       setLoading(false);
       onLoginSuccess(user);
-    }, 400);
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || 'Login failed. Please verify credentials.');
+    }
+  };
+
+  const handleQuickOwnerLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const user = await signInWithPhone('9999911111');
+      setLoading(false);
+      onLoginSuccess(user);
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || 'Login failed.');
+    }
   };
 
   return (
@@ -121,45 +121,27 @@ export default function LoginScreen({ onLoginSuccess, onNavigateToRegister }: Lo
             <div className="w-full border-t border-slate-100"></div>
           </div>
           <span className="relative bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
-            Or Quick Login for Testers
+            Quick Admin Access
           </span>
         </div>
 
-        {/* Demo Quick Logins */}
-        <div className="space-y-2 max-h-52 overflow-y-auto no-scrollbar pr-1">
-          {registeredUsers.map((user) => (
-            <button
-              key={user.uid}
-              type="button"
-              onClick={() => handleQuickLogin(user)}
-              className="w-full bg-slate-50 border border-slate-100 hover:border-emerald-500/35 hover:bg-emerald-50/20 p-3 rounded-2xl flex items-center justify-between text-left transition-all active:scale-[0.99] group"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
-                  user.role === 'Owner' ? 'bg-indigo-100 text-indigo-700' :
-                  user.role === 'Seller' ? 'bg-amber-100 text-amber-700' :
-                  'bg-emerald-100 text-emerald-700'
-                }`}>
-                  {user.role[0]}
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{user.name}</h4>
-                  <div className="flex gap-2 mt-0.5">
-                    <span className="text-[10px] text-slate-500 font-mono">{user.phone}</span>
-                    <span className={`text-[9px] font-bold px-1 rounded uppercase ${
-                      user.approvalStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                      user.approvalStatus === 'pending' ? 'bg-amber-100 text-amber-800' :
-                      'bg-rose-100 text-rose-800'
-                    }`}>
-                      {user.approvalStatus}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <UserCheck className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0" />
-            </button>
-          ))}
-        </div>
+        {/* Real Firebase Rajesh Owner admin button */}
+        <button
+          type="button"
+          onClick={handleQuickOwnerLogin}
+          className="w-full bg-slate-550 border border-slate-200 hover:border-emerald-500/50 hover:bg-emerald-50/25 p-3.5 rounded-2xl flex items-center justify-between text-left transition-all active:scale-[0.99] group cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+              O
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-slate-800">Rajesh Kumar (Owner Admin)</h4>
+              <p className="text-[9px] text-slate-400 font-mono mt-0.5">Test Phone: 9999911111 (Pre-approved)</p>
+            </div>
+          </div>
+          <UserCheck className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0" />
+        </button>
       </div>
 
       {/* Footer Signup Navigation */}

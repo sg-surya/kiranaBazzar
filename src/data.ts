@@ -71,51 +71,7 @@ export const SEEDED_USERS: UserProfile[] = [
     pincode: '110006',
     role: 'Owner',
     approvalStatus: 'approved',
-    createdAt: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
-  },
-  {
-    uid: 'seller-goel',
-    name: 'Anil Goel (Goel Wholesalers)',
-    phone: '9876543210',
-    whatsapp: '9876543210',
-    address: 'Sadar Gate Wholesale Complex, Shop B-12, Delhi',
-    pincode: '110001',
-    role: 'Seller',
-    approvalStatus: 'approved',
-    createdAt: new Date(Date.now() - 15 * 24 * 3600 * 1000).toISOString()
-  },
-  {
-    uid: 'seller-pending',
-    name: 'Suresh Kumar (Suresh & Sons)',
-    phone: '9111122222',
-    whatsapp: '9111122222',
-    address: 'Galla Mandi Row-3, Lucknow',
-    pincode: '226012',
-    role: 'Seller',
-    approvalStatus: 'pending',
-    createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString()
-  },
-  {
-    uid: 'dukan-ramesh',
-    name: 'Ramesh Gupta (Gupta Kirana Store)',
-    phone: '9888877777',
-    whatsapp: '9888877777',
-    address: 'Sector 5 Corner Shop, Rohini, Delhi',
-    pincode: '110085',
-    role: 'Dukandar',
-    approvalStatus: 'approved',
-    createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString()
-  },
-  {
-    uid: 'dukan-pending',
-    name: 'Verma Provision Store',
-    phone: '9333344444',
-    whatsapp: '9333344444',
-    address: 'Chowk Crossing Bazar, Lucknow',
-    pincode: '226003',
-    role: 'Dukandar',
-    approvalStatus: 'pending',
-    createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString()
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -190,40 +146,7 @@ export const SEEDED_PRODUCTS: Product[] = [
   }
 ];
 
-export const SEEDED_ORDERS: Order[] = [
-  {
-    id: 'ord-1001',
-    productId: 'prod-atta',
-    productName: 'Shaktibhag Premium Atta (50kg)',
-    sellerId: 'seller-goel',
-    buyerId: 'dukan-ramesh',
-    buyerName: 'Ramesh Gupta (Gupta Kirana Store)',
-    buyerPhone: '9888877777',
-    address: 'Sector 5 Corner Shop, Rohini, Delhi',
-    pincode: '110085',
-    price: 1320,
-    quantity: 5,
-    totalAmount: 6600,
-    status: 'Delivered',
-    createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString()
-  },
-  {
-    id: 'ord-1002',
-    productId: 'prod-rice',
-    productName: 'India Gate Basmati Rice Mini (25kg Bag)',
-    sellerId: 'seller-goel',
-    buyerId: 'dukan-ramesh',
-    buyerName: 'Ramesh Gupta (Gupta Kirana Store)',
-    buyerPhone: '9888877777',
-    address: 'Sector 5 Corner Shop, Rohini, Delhi',
-    pincode: '110085',
-    price: 1650,
-    quantity: 2,
-    totalAmount: 3300,
-    status: 'Pending',
-    createdAt: new Date(Date.now() - 10 * 3600 * 1000).toISOString()
-  }
-];
+export const SEEDED_ORDERS: Order[] = [];
 
 // Helper to initialize local storage
 export function initializeLocalStorage() {

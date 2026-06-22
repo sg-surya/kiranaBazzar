@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { UserProfile, Product, Order } from './types';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from './firebase';
 import {
-  initializeLocalStorage,
-  getUsers,
-  getProducts,
-  getOrders,
-  saveUsers,
-  saveProducts,
-  saveOrders,
-  SEEDED_USERS,
-  SEEDED_PRODUCTS,
-  SEEDED_ORDERS
-} from './data';
+  updateUserProfile,
+  addProductToDb,
+  updateProductInDb,
+  deleteProductFromDb,
+  placeOrderInDb,
+  updateOrderInDb,
+  logOutUser
+} from './services/db';
+import { SEEDED_PRODUCTS } from './data';
 import SplashScreen from './components/SplashScreen';
 import LoginScreen from './components/LoginScreen';
 import RegisterScreen from './components/RegisterScreen';
@@ -32,47 +32,52 @@ export default function App() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   
-  // Testing guide switcher state
-  const [showTestSwitcher, setShowTestSwitcher] = useState(true);
-
-  // Initialize
+  // Initialize and Sync Realtime Collections from Firestore
   useEffect(() => {
-    initializeLocalStorage();
-    setAllUsers(getUsers());
-    setAllProducts(getProducts());
-    setAllOrders(getOrders());
-
-    // Check if there is an active session in local storage
-    const storedUser = localStorage.getItem('kb_current_user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  // Save changes to local storage and sync state
-  const updateUsersListState = (updatedUsersList: UserProfile[]) => {
-    setAllUsers(updatedUsersList);
-    saveUsers(updatedUsersList);
-    
-    // If current logged-in user is updated, sync their details
-    if (currentUser) {
-      const freshUserObj = updatedUsersList.find(u => u.uid === currentUser.uid);
-      if (freshUserObj) {
-        setCurrentUser(freshUserObj);
-        localStorage.setItem('kb_current_user', JSON.stringify(freshUserObj));
+    // 1. Sync users
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const usersList = snapshot.docs.map(doc => doc.data() as UserProfile);
+      setAllUsers(usersList);
+      
+      // Auto-sync current logged-in user details if any changes occur in DB (e.g. Owner approves)
+      const stored = localStorage.getItem('kb_current_user');
+      if (stored) {
+        const parsed = JSON.parse(stored) as UserProfile;
+        const dbUser = usersList.find(u => u.uid === parsed.uid);
+        if (dbUser) {
+          setCurrentUser(dbUser);
+          localStorage.setItem('kb_current_user', JSON.stringify(dbUser));
+        }
       }
-    }
-  };
+    });
 
-  const updateProductsListState = (updatedProductsList: Product[]) => {
-    setAllProducts(updatedProductsList);
-    saveProducts(updatedProductsList);
-  };
+    // 2. Sync products (Auto-seed if Firestore is empty)
+    const unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
+      if (snapshot.empty) {
+        // Auto-seed baseline items on cold start
+        SEEDED_PRODUCTS.forEach(async (p) => {
+          const { id, ...cleanProduct } = p;
+          await addProductToDb(cleanProduct);
+        });
+        return;
+      }
+      const productsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      setAllProducts(productsList);
+    });
 
-  const updateOrdersListState = (updatedOrdersList: Order[]) => {
-    setAllOrders(updatedOrdersList);
-    saveOrders(updatedOrdersList);
-  };
+    // 3. Sync orders (sorted by newest placement)
+    const unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+      const ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+      ordersList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setAllOrders(ordersList);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubProducts();
+      unsubOrders();
+    };
+  }, []);
 
   // Auth Operations
   const handleLoginSuccess = (user: UserProfile) => {
@@ -85,159 +90,154 @@ export default function App() {
     localStorage.setItem('kb_current_user', JSON.stringify(user));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logOutUser();
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setCurrentUser(null);
     localStorage.removeItem('kb_current_user');
     setGuestView('marketplace');
   };
 
   // User Approval / Status (Owner activity)
-  const handleUpdateUserStatus = (uid: string, status: UserProfile['approvalStatus']) => {
-    const updated = allUsers.map(u => {
-      if (u.uid === uid) {
-        return { ...u, approvalStatus: status };
-      }
-      return u;
-    });
-    updateUsersListState(updated);
+  const handleUpdateUserStatus = async (uid: string, status: UserProfile['approvalStatus']) => {
+    try {
+      await updateUserProfile(uid, { approvalStatus: status });
+    } catch (err) {
+      console.error('Error updating user status:', err);
+    }
   };
 
   // Wholesaler - Product Catalog CRUD operations
-  const handleSaveProduct = (product: Product) => {
-    const exists = allProducts.some(p => p.id === product.id);
-    let updated: Product[];
-    
-    if (exists) {
-      updated = allProducts.map(p => p.id === product.id ? product : p);
-    } else {
-      updated = [product, ...allProducts];
+  const handleSaveProduct = async (product: Product) => {
+    try {
+      if (product.id.startsWith('new-') || !allProducts.some(p => p.id === product.id)) {
+        const { id, ...cleanProduct } = product;
+        await addProductToDb(cleanProduct);
+      } else {
+        const { id, ...cleanProduct } = product;
+        await updateProductInDb(id, cleanProduct);
+      }
+    } catch (err) {
+      console.error('Error saving product catalog:', err);
     }
-    updateProductsListState(updated);
   };
 
-  const handleDeleteProduct = (pId: string) => {
+  const handleDeleteProduct = async (pId: string) => {
     if (window.confirm('Are you sure you want to delete this product listing from your catalog?')) {
-      const updated = allProducts.filter(p => p.id !== pId);
-      updateProductsListState(updated);
+      try {
+        await deleteProductFromDb(pId);
+      } catch (err) {
+        console.error('Error deleting product from database:', err);
+      }
     }
   };
 
-  const handleUpdateProductStatus = (pId: string) => {
-    const updated = allProducts.map(p => {
-      if (p.id === pId) {
-        const nextStatus = p.status === 'Active' ? 'Inactive' : 'Active';
-        return { ...p, status: nextStatus as any };
-      }
-      return p;
-    });
-    updateProductsListState(updated);
+  const handleUpdateProductStatus = async (pId: string) => {
+    const prod = allProducts.find(p => p.id === pId);
+    if (!prod) return;
+    const nextStatus = prod.status === 'Active' ? 'Inactive' : 'Active';
+    try {
+      await updateProductInDb(pId, { status: nextStatus as any });
+    } catch (err) {
+      console.error('Error updating product status in DB:', err);
+    }
   };
 
-  const handleUpdateProductStock = (pId: string, newStock: number) => {
-    const updated = allProducts.map(p => {
-      if (p.id === pId) {
-        const calculatedStatus = newStock === 0 ? 'Sold Out' : p.status === 'Sold Out' ? 'Active' : p.status;
-        return {
-          ...p,
-          stockQuantity: newStock,
-          status: calculatedStatus as any
-        };
-      }
-      return p;
-    });
-    updateProductsListState(updated);
+  const handleUpdateProductStock = async (pId: string, newStock: number) => {
+    const prod = allProducts.find(p => p.id === pId);
+    if (!prod) return;
+    const calculatedStatus = newStock === 0 ? 'Sold Out' : prod.status === 'Sold Out' ? 'Active' : prod.status;
+    try {
+      await updateProductInDb(pId, {
+        stockQuantity: newStock,
+        status: calculatedStatus as any
+      });
+    } catch (err) {
+      console.error('Error updating product stock in DB:', err);
+    }
   };
 
   // Seller delivery area changes
-  const handleUpdateDeliveryAreas = (sellerId: string, cities: string[], pincodes: string[]) => {
-    const updated = allProducts.map(p => {
-      if (p.sellerId === sellerId) {
-        return {
-          ...p,
+  const handleUpdateDeliveryAreas = async (sellerId: string, cities: string[], pincodes: string[]) => {
+    const sellerProds = allProducts.filter(p => p.sellerId === sellerId);
+    for (const p of sellerProds) {
+      try {
+        await updateProductInDb(p.id, {
           deliveryAreas: {
             cities: cities,
             pincodes: pincodes
           }
-        };
+        });
+      } catch (err) {
+        console.error('Error updating product delivery areas:', err);
       }
-      return p;
-    });
-    updateProductsListState(updated);
+    }
   };
 
   // Orders Placed & Status toggles
-  const handlePlaceOrder = (order: Order) => {
-    // 1. Save local order
-    const updatedOrders = [order, ...allOrders];
-    updateOrdersListState(updatedOrders);
-
-    // 2. Adjust remaining product stock quantity
-    const updatedProducts = allProducts.map(p => {
-      if (p.id === order.productId) {
-        const nextStock = Math.max(0, p.stockQuantity - order.quantity);
-        // Automatically set Sold Out if stock hits 0
-        const updatedStatus = nextStock === 0 ? 'Sold Out' : p.status;
-        return {
-          ...p,
+  const handlePlaceOrder = async (order: Order) => {
+    try {
+      const { id, ...cleanOrder } = order;
+      await placeOrderInDb(cleanOrder);
+      
+      const prod = allProducts.find(p => p.id === order.productId);
+      if (prod) {
+        const nextStock = Math.max(0, prod.stockQuantity - order.quantity);
+        const updatedStatus = nextStock === 0 ? 'Sold Out' : prod.status;
+        await updateProductInDb(prod.id, {
           stockQuantity: nextStock,
           status: updatedStatus as any
-        };
+        });
       }
-      return p;
-    });
-    updateProductsListState(updatedProducts);
+    } catch (err) {
+      console.error('Error placing order in Firestore:', err);
+    }
   };
 
-  const handleUpdateOrderStatus = (orderId: string, nextStatus: Order['status']) => {
-    const updatedOrders = allOrders.map(o => {
-      if (o.id === orderId) {
-        // If order gets cancelled, refund the stock!
-        if (nextStatus === 'Cancelled' && o.status !== 'Cancelled') {
-          handleRefundStock(o.productId, o.quantity);
-        }
-        return { ...o, status: nextStatus };
+  const handleUpdateOrderStatus = async (orderId: string, nextStatus: Order['status']) => {
+    try {
+      const ordObj = allOrders.find(o => o.id === orderId);
+      if (ordObj && nextStatus === 'Cancelled' && ordObj.status !== 'Cancelled') {
+        await handleRefundStock(ordObj.productId, ordObj.quantity);
       }
-      return o;
-    });
-    updateOrdersListState(updatedOrders);
+      await updateOrderInDb(orderId, nextStatus);
+    } catch (err) {
+      console.error('Error updating order status in DB:', err);
+    }
   };
 
-  const handleRefundStock = (productId: string, qty: number) => {
-    const updatedProducts = allProducts.map(p => {
-      if (p.id === productId) {
-        const nextStock = p.stockQuantity + qty;
-        const nextStatus = p.status === 'Sold Out' ? 'Active' : p.status;
-        return { ...p, stockQuantity: nextStock, status: nextStatus as any };
-      }
-      return p;
-    });
-    updateProductsListState(updatedProducts);
+  const handleRefundStock = async (productId: string, qty: number) => {
+    const prod = allProducts.find(p => p.id === productId);
+    if (!prod) return;
+    const nextStock = prod.stockQuantity + qty;
+    const nextStatus = prod.status === 'Sold Out' ? 'Active' : prod.status;
+    try {
+      await updateProductInDb(productId, { stockQuantity: nextStock, status: nextStatus as any });
+    } catch (e) {
+      console.error('Error refunding stock:', e);
+    }
   };
 
-  // Restorer to default seeding (Owner operation)
-  const handleResetSystemData = () => {
+  const handleResetSystemData = async () => {
+    try {
+      await logOutUser();
+    } catch (err) {
+      console.error(err);
+    }
     localStorage.clear();
-    setAllUsers(SEEDED_USERS);
-    setAllProducts(SEEDED_PRODUCTS);
-    setAllOrders(SEEDED_ORDERS);
     setCurrentUser(null);
-    localStorage.setItem('kb_users', JSON.stringify(SEEDED_USERS));
-    localStorage.setItem('kb_products', JSON.stringify(SEEDED_PRODUCTS));
-    localStorage.setItem('kb_orders', JSON.stringify(SEEDED_ORDERS));
-    localStorage.removeItem('kb_current_user');
+    setGuestView('marketplace');
   };
 
-  const handleQuickBypassApprove = (updated: UserProfile) => {
-    setCurrentUser(updated);
-    localStorage.setItem('kb_current_user', JSON.stringify(updated));
-    // refresh user state list as well
-    setAllUsers(getUsers());
-  };
-
-  // Quick switch role shortcut for testing / grading ease
-  const handleQuickSwitchUser = (user: UserProfile) => {
-    setCurrentUser(user);
-    localStorage.setItem('kb_current_user', JSON.stringify(user));
+  const handleQuickBypassApprove = async (updated: UserProfile) => {
+    try {
+      await updateUserProfile(updated.uid, { approvalStatus: 'approved' });
+    } catch (err) {
+      console.error('Error quick bypass approving:', err);
+    }
   };
 
   // Rendering Routing Logic
@@ -248,42 +248,6 @@ export default function App() {
   return (
     <div className="h-screen bg-slate-900 flex flex-col justify-between overflow-hidden select-none">
       
-      {/* Simulation/Tester floating banner at top */}
-      {showTestSwitcher && (
-        <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-indigo-950 text-white border-b border-teal-500/20 text-xs px-4 py-3 select-none flex items-center justify-between shadow-md relative z-40 max-w-md mx-auto w-full shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="animate-ping w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <h4 className="font-bold text-[11px] uppercase tracking-wider font-mono text-emerald-400">
-              Demo Switcher Console
-            </h4>
-          </div>
-
-          <div className="flex items-center gap-2 max-w-xs overflow-x-auto no-scrollbar py-0.5">
-            {allUsers.slice(0, 4).map((user) => (
-              <button
-                key={user.uid}
-                onClick={() => handleQuickSwitchUser(user)}
-                title={`Login as ${user.name} (${user.role})`}
-                className={`py-1 px-2 rounded-lg text-[10px] font-bold border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                  currentUser?.uid === user.uid
-                    ? 'bg-emerald-600 border-emerald-400 text-white shadow-xs'
-                    : 'bg-white/5 border-white/15 text-slate-300 hover:bg-white/10'
-                }`}
-              >
-                {user.name.split(' ')[0]} ({user.role[0]} - {user.approvalStatus[0].toUpperCase()})
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => setShowTestSwitcher(false)}
-            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer ml-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* Main Container workspace */}
       <div className="flex-1 bg-slate-50 relative flex flex-col overflow-hidden">
         
@@ -416,17 +380,6 @@ export default function App() {
         )}
 
       </div>
-
-      {/* Persistent Switcer Hint info at bottom */}
-      {!showTestSwitcher && (
-        <button
-          onClick={() => setShowTestSwitcher(true)}
-          className="fixed bottom-2.5 right-2.5 bg-slate-900 border border-teal-500/30 text-white text-[9px] font-semibold py-1 px-2 rounded-lg pointer-events-auto leading-none select-none active:scale-95 transition-all z-20 flex items-center gap-1.5 shadow-lg shadow-black/15"
-        >
-          <UserCheck className="w-3 h-3 text-emerald-400 shrink-0" />
-          Quick Switch Tester Console
-        </button>
-      )}
 
     </div>
   );

@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with roles of Owner, Seller or Dukandar (Retailer)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "pincode": { "type": "string" },
+        "role": { "type": "string", "enum": ["Owner", "Seller", "Dukandar"] },
+        "approvalStatus": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "phone", "address", "pincode", "role", "approvalStatus"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "KirranaBazzar Wholesale Catalog Product Listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "minOrderQty": { "type": "number" },
+        "unit": { "type": "string" },
+        "stockQuantity": { "type": "number" },
+        "image": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive", "Sold Out"] },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "category", "basePrice", "minOrderQty", "unit", "stockQuantity", "status", "sellerId", "sellerName"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Wholesale order placed by Dukandar to Seller",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "buyerPhone": { "type": "string" },
+        "address": { "type": "string" },
+        "pincode": { "type": "string" },
+        "price": { "type": "number" },
+        "quantity": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Shipped", "Delivered", "Cancelled"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["productId", "productName", "sellerId", "buyerId", "buyerName", "buyerPhone", "address", "pincode", "price", "quantity", "totalAmount", "status"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Collection of all system user profiles"
+    },
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "Marketplace wholesale catalog products"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Wholesale transactions placed across the marketplace"
+    }
+  }
+}

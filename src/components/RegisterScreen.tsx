@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserProfile, UserRole } from '../types';
-import { getUsers, saveUsers } from '../data';
+import { registerWithPhone } from '../services/db';
 import { Store, User, Phone, MapPin, CheckCircle, Info, ChevronLeft, ArrowRight, MessageSquareCode, Factory } from 'lucide-react';
 
 interface RegisterScreenProps {
@@ -17,9 +17,10 @@ export default function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }:
   const [pincode, setPincode] = useState('');
   const [role, setRole] = useState<UserRole>('Dukandar');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [isSameAsPhone, setIsSameAsPhone] = useState(true);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -33,39 +34,29 @@ export default function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }:
       return;
     }
 
-    const currentUsers = getUsers();
-    
-    // Check if phone number already exists
-    const phoneExists = currentUsers.some(u => u.phone === phone);
-    if (phoneExists) {
-      setError('This mobile number is already registered. Please go back and Login.');
-      return;
-    }
-
     const finalWhatsapp = isSameAsPhone ? phone : whatsapp;
     if (!isSameAsPhone && finalWhatsapp.length < 10) {
       setError('Please enter a valid WhatsApp number or check "Same as phone".');
       return;
     }
 
-    const newUser: UserProfile = {
-      uid: `user-${Date.now()}`,
-      name: name.trim(),
-      phone: phone.trim(),
-      whatsapp: finalWhatsapp.trim(),
-      address: address.trim(),
-      pincode: pincode.trim(),
-      role,
-      approvalStatus: 'pending', // strict B2B policy rule
-      createdAt: new Date().toISOString()
-    };
-
-    // Save user
-    const updatedUsers = [...currentUsers, newUser];
-    saveUsers(updatedUsers);
-
-    // Call success
-    onRegisterSuccess(newUser);
+    setLoading(true);
+    try {
+      const newUser = await registerWithPhone({
+        name: name.trim(),
+        phone: phone.trim(),
+        whatsapp: finalWhatsapp.trim(),
+        address: address.trim(),
+        pincode: pincode.trim(),
+        role,
+        approvalStatus: 'pending' // strict B2B policy rule
+      });
+      setLoading(false);
+      onRegisterSuccess(newUser);
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || 'Registration failed inside Firebase services.');
+    }
   };
 
   const fillSample = (roleType: 'Seller' | 'Dukandar') => {
@@ -301,9 +292,16 @@ export default function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }:
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-slate-950 hover:bg-slate-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all active:scale-[0.98] text-sm flex items-center justify-center gap-2 cursor-pointer mt-4"
+            disabled={loading}
+            className="w-full bg-slate-950 hover:bg-slate-900 disabled:bg-slate-400 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all active:scale-[0.98] text-sm flex items-center justify-center gap-2 cursor-pointer mt-4"
           >
-            Submit Application <ArrowRight className="w-4 h-4" />
+            {loading ? (
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                Submit Application <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
       </div>

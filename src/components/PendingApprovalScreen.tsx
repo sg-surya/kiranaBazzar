@@ -1,6 +1,5 @@
 import { motion } from 'motion/react';
 import { UserProfile } from '../types';
-import { getUsers, saveUsers } from '../data';
 import { Clock, ShieldAlert, Phone, MapPin, Signpost, LogOut, CheckCircle2, Key } from 'lucide-react';
 
 interface PendingApprovalScreenProps {
@@ -12,16 +11,7 @@ interface PendingApprovalScreenProps {
 export default function PendingApprovalScreen({ currentUser, onLogout, onApprovalBypass }: PendingApprovalScreenProps) {
   
   const handleInstantApprove = () => {
-    const allUsers = getUsers();
-    const updatedUsers = allUsers.map(u => {
-      if (u.uid === currentUser.uid) {
-        return { ...u, approvalStatus: 'approved' as const };
-      }
-      return u;
-    });
-    saveUsers(updatedUsers);
-    
-    // Trigger callback with the approved profile
+    // Trigger callback with the approved profile, which writes to Firebase Firestore
     onApprovalBypass({ ...currentUser, approvalStatus: 'approved' });
   };
 
