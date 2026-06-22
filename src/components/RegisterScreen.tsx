@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserProfile, UserRole } from '../types';
 import { getUsers, saveUsers } from '../data';
-import { Store, User, Phone, MapPin, CheckCircle, Info, ChevronLeft, ArrowRight, MessageSquareCode } from 'lucide-react';
+import { Store, User, Phone, MapPin, CheckCircle, Info, ChevronLeft, ArrowRight, MessageSquareCode, Factory } from 'lucide-react';
 
 interface RegisterScreenProps {
   onRegisterSuccess: (user: UserProfile) => void;
@@ -152,8 +152,8 @@ export default function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }:
                     : 'border-slate-200 bg-slate-50 text-slate-500'
                 }`}
               >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-xl">🏭</span>
+                <div className="flex flex-col items-center gap-1.5 text-center">
+                  <Factory className="w-6 h-6 text-emerald-600 mb-0.5" />
                   <span className="text-xs font-bold">Wholesale Seller</span>
                   <span className="text-[9px] opacity-75">I want to sell bulk items</span>
                 </div>
@@ -168,8 +168,8 @@ export default function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }:
                     : 'border-slate-200 bg-slate-50 text-slate-500'
                 }`}
               >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-xl">🏪</span>
+                <div className="flex flex-col items-center gap-1.5 text-center font-sans">
+                  <Store className="w-6 h-6 text-emerald-600 mb-0.5" />
                   <span className="text-xs font-bold">Dukandar (Buy)</span>
                   <span className="text-[9px] opacity-75">I want to buy for my shop</span>
                 </div>

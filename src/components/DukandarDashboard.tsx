@@ -18,6 +18,7 @@ import {
   Layers,
   ArrowRight
 } from 'lucide-react';
+import CategoryIcon from './CategoryIcon';
 
 interface DukandarDashboardProps {
   currentUser: UserProfile;
@@ -125,13 +126,13 @@ export default function DukandarDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative select-none">
+    <div className="h-full w-full bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative overflow-hidden select-none">
       
       {/* Retail Header */}
       <header className="bg-emerald-600 text-white px-4 py-4 sticky top-0 z-20 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center font-bold">
-            🏪
+          <div className="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center">
+            <Store className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
             <h1 className="text-sm font-black tracking-tight leading-none font-display">
@@ -152,7 +153,7 @@ export default function DukandarDashboard({
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-8">
         
         {successMsg && (
           <div className="bg-emerald-950 text-emerald-300 p-3.5 rounded-2xl border border-emerald-500/30 text-xs font-semibold leading-relaxed flex gap-2 items-start shadow-md animate-bounce">
@@ -202,7 +203,7 @@ export default function DukandarDashboard({
                         : 'bg-white text-slate-600 border-slate-105 hover:border-slate-300'
                     }`}
                   >
-                    <span>{cat.icon}</span>
+                    <CategoryIcon name={cat.icon} className="w-4 h-4" />
                     <span>{cat.name}</span>
                   </button>
                 ))}
@@ -222,7 +223,7 @@ export default function DukandarDashboard({
 
               {availableProducts.length === 0 ? (
                 <div className="p-10 text-center bg-white rounded-3xl border border-slate-105/90 text-slate-400 text-xs">
-                  🌾
+                  <Store className="w-8 h-8 text-slate-350 mx-auto mb-2" />
                   <h4 className="text-xs font-bold text-slate-700 mt-2">No wholesale stock active for {currentUser.pincode}</h4>
                   <p className="text-[11px] text-slate-400 mt-1">Please try modifying your category selection or clear search values!</p>
                 </div>
@@ -421,8 +422,8 @@ export default function DukandarDashboard({
         {activeTab === 'profile' && (
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-5 animate-fade-in select-none">
             <div className="text-center pb-3 border-b border-slate-100">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 text-2xl mx-auto">
-                🏪
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 mx-auto">
+                <Store className="w-8 h-8 text-emerald-700" />
               </div>
               <h3 className="font-extrabold text-slate-800 text-lg mt-3">{currentUser.name}</h3>
               <p className="text-xs text-slate-400 font-medium">Verified Retailer Account</p>

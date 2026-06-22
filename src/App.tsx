@@ -246,11 +246,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-between select-none">
+    <div className="h-screen bg-slate-900 flex flex-col justify-between overflow-hidden select-none">
       
       {/* Simulation/Tester floating banner at top */}
       {showTestSwitcher && (
-        <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-indigo-950 text-white border-b border-teal-500/20 text-xs px-4 py-3 select-none flex items-center justify-between shadow-md relative z-40 max-w-md mx-auto w-full">
+        <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-indigo-950 text-white border-b border-teal-500/20 text-xs px-4 py-3 select-none flex items-center justify-between shadow-md relative z-40 max-w-md mx-auto w-full shrink-0">
           <div className="flex items-center gap-2">
             <span className="animate-ping w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <h4 className="font-bold text-[11px] uppercase tracking-wider font-mono text-emerald-400">
@@ -285,7 +285,7 @@ export default function App() {
       )}
 
       {/* Main Container workspace */}
-      <div className="flex-1 bg-slate-50 relative overflow-hidden">
+      <div className="flex-1 bg-slate-50 relative flex flex-col overflow-hidden">
         
         {/* RENDER LOGIN / REGISTER ROUTE */}
         {currentUser === null ? (
@@ -296,8 +296,8 @@ export default function App() {
               onNavigateToRegister={() => setGuestView('register')}
             />
           ) : guestView === 'login' ? (
-            <div className="relative">
-              <div className="max-w-md mx-auto px-4 pt-4 bg-slate-50">
+            <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+              <div className="max-w-md mx-auto w-full px-4 pt-4 shrink-0">
                 <button
                   onClick={() => setGuestView('marketplace')}
                   className="flex items-center gap-1.5 text-xs text-pink-600 font-bold bg-pink-50 hover:bg-pink-100 py-1.5 px-3 rounded-lg transition-all cursor-pointer"
@@ -305,17 +305,19 @@ export default function App() {
                   ← Back to Wholesale Market
                 </button>
               </div>
-              <LoginScreen
-                onLoginSuccess={(user) => {
-                  handleLoginSuccess(user);
-                  setGuestView('marketplace');
-                }}
-                onNavigateToRegister={() => setGuestView('register')}
-              />
+              <div className="flex-1 overflow-y-auto">
+                <LoginScreen
+                  onLoginSuccess={(user) => {
+                    handleLoginSuccess(user);
+                    setGuestView('marketplace');
+                  }}
+                  onNavigateToRegister={() => setGuestView('register')}
+                />
+              </div>
             </div>
           ) : (
-            <div className="relative">
-              <div className="max-w-md mx-auto px-4 pt-4 bg-slate-50">
+            <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+              <div className="max-w-md mx-auto w-full px-4 pt-4 shrink-0">
                 <button
                   onClick={() => setGuestView('marketplace')}
                   className="flex items-center gap-1.5 text-xs text-pink-600 font-bold bg-pink-50 hover:bg-pink-100 py-1.5 px-3 rounded-lg transition-all cursor-pointer"
@@ -323,32 +325,36 @@ export default function App() {
                   ← Back to Wholesale Market
                 </button>
               </div>
-              <RegisterScreen
-                onRegisterSuccess={(user) => {
-                  handleRegisterSuccess(user);
-                  setGuestView('marketplace');
-                }}
-                onNavigateToLogin={() => setGuestView('login')}
-              />
+              <div className="flex-1 overflow-y-auto">
+                <RegisterScreen
+                  onRegisterSuccess={(user) => {
+                    handleRegisterSuccess(user);
+                    setGuestView('marketplace');
+                  }}
+                  onNavigateToLogin={() => setGuestView('login')}
+                />
+              </div>
             </div>
           )
         ) : (
           /* USER LOGGED IN - ROUTE BY VERIFICATION STATUS */
           currentUser.approvalStatus === 'pending' ? (
-            <PendingApprovalScreen
-              currentUser={currentUser}
-              onLogout={handleLogout}
-              onApprovalBypass={handleQuickBypassApprove}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <PendingApprovalScreen
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                onApprovalBypass={handleQuickBypassApprove}
+              />
+            </div>
           ) : currentUser.approvalStatus === 'rejected' ? (
             /* REJECTED SCREEN */
-            <div className="min-h-screen bg-slate-50 p-4 max-w-md mx-auto flex flex-col justify-between text-center select-none">
+            <div className="h-full bg-slate-50 p-4 max-w-md mx-auto flex flex-col justify-between text-center overflow-y-auto select-none">
               <div className="pt-8">
                 <h2 className="text-xl font-bold text-slate-800">KirranaBazzar</h2>
                 <p className="text-[10px] uppercase font-mono tracking-widest text-slate-400 font-bold">Verification Desk</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl my-4 flex-1 flex flex-col justify-center">
+              <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-xl my-4">
                 <span className="text-5xl block">⚠️</span>
                 <h3 className="text-lg font-bold text-slate-800 mt-4">Application Rejected</h3>
                 <p className="text-xs text-rose-700 bg-rose-50 border border-rose-100 py-1.5 px-3 rounded-full inline-block mt-2 font-semibold">

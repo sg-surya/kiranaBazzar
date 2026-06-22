@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { UserProfile } from '../types';
 import { getUsers, saveUsers } from '../data';
-import { Clock, ShieldAlert, Phone, MapPin, Signpost, LogOut, CheckCircle2 } from 'lucide-react';
+import { Clock, ShieldAlert, Phone, MapPin, Signpost, LogOut, CheckCircle2, Key } from 'lucide-react';
 
 interface PendingApprovalScreenProps {
   currentUser: UserProfile;
@@ -86,7 +86,7 @@ export default function PendingApprovalScreen({ currentUser, onLogout, onApprova
         <div className="mt-8 pt-6 border-t border-dashed border-slate-200">
           <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-left">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs">🔑</span>
+              <Key className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
               <h4 className="text-xs font-black text-indigo-950 uppercase tracking-wide font-mono">
                 Admin Testing Console
               </h4>

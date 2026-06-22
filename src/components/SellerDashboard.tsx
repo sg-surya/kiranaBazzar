@@ -150,7 +150,7 @@ export default function SellerDashboard({
   ] as const;
 
   return (
-    <div className="min-h-screen bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative select-none">
+    <div className="h-full w-full bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative overflow-hidden select-none">
       
       {/* Top Banner Header */}
       <header className="bg-slate-900 text-white px-4 py-4 sticky top-0 z-20 flex items-center justify-between shadow-md">
@@ -238,7 +238,7 @@ export default function SellerDashboard({
       )}
 
       {/* Main Tab Area */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-8">
         
         {/* TABS 1: DASHBOARD VIEW */}
         {activeTab === 'dashboard' && (

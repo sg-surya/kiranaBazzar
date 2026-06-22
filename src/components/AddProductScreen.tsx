@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product, Category } from '../types';
 import { CATEGORIES, MOCK_PRODUCT_PRESETS } from '../data';
 import { ArrowLeft, Plus, Trash2, Tag, ShoppingCart, Layers, Globe, Check, Sparkles, Image as ImageIcon } from 'lucide-react';
+import CategoryIcon from './CategoryIcon';
 
 interface AddProductScreenProps {
   sellerId: string;
@@ -204,7 +205,7 @@ export default function AddProductScreen({
                         : 'border-slate-100 bg-slate-50/50 text-slate-500'
                     }`}
                   >
-                    <span className="text-base">{cat.icon}</span>
+                    <CategoryIcon name={cat.icon} className="w-5 h-5 text-emerald-600" />
                     <span className="text-[10px] font-bold mt-1 line-clamp-1 leading-none">{cat.name.split(' ')[0]}</span>
                   </button>
                 ))}

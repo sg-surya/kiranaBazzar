@@ -1,6 +1,7 @@
 import { Product, Category } from '../types';
 import { CATEGORIES } from '../data';
 import { Edit3, Trash2, Eye, EyeOff, AlertTriangle, PackageOpen, Truck, MapPin } from 'lucide-react';
+import CategoryIcon from './CategoryIcon';
 
 interface ProductListScreenProps {
   products: Product[];
@@ -77,8 +78,8 @@ export default function ProductListScreen({
                 />
                 
                 {/* Category Icon Badge */}
-                <span className="absolute top-1 left-1 bg-white/90 backdrop-blur-xs text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-xs">
-                  {getCategoryIcon(p.category)}
+                <span className="absolute top-1 left-1 bg-white/95 backdrop-blur-xs w-5 h-5 rounded-full flex items-center justify-center shadow-xs text-emerald-600">
+                  <CategoryIcon name={getCategoryIcon(p.category)} className="w-3 h-3" />
                 </span>
 
                 {/* Left Mini Stock Status */}

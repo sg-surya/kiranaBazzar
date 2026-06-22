@@ -1,12 +1,12 @@
 import { UserProfile, Product, Order, Category } from './types';
 
 export const CATEGORIES: Category[] = [
-  { id: 'grains_pulses', name: 'Grains & Pulses', icon: '🌾' },
-  { id: 'spices_masalas', name: 'Spices & Masalas', icon: '🌶️' },
-  { id: 'oils_ghee', name: 'Oils & Ghee', icon: '🧴' },
-  { id: 'tea_beverages', name: 'Tea & Beverages', icon: '☕' },
-  { id: 'packaged_snacks', name: 'Packaged Snacks', icon: '🍪' },
-  { id: 'cleaning_hygiene', name: 'Cleaning & Hygiene', icon: '🧼' }
+  { id: 'grains_pulses', name: 'Grains & Pulses', icon: 'Wheat' },
+  { id: 'spices_masalas', name: 'Spices & Masalas', icon: 'Flame' },
+  { id: 'oils_ghee', name: 'Oils & Ghee', icon: 'Droplets' },
+  { id: 'tea_beverages', name: 'Tea & Beverages', icon: 'Coffee' },
+  { id: 'packaged_snacks', name: 'Packaged Snacks', icon: 'Cookie' },
+  { id: 'cleaning_hygiene', name: 'Cleaning & Hygiene', icon: 'Sparkles' }
 ];
 
 export const MOCK_PRODUCT_PRESETS = [

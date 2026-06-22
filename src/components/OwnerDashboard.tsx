@@ -15,7 +15,11 @@ import {
   LogOut,
   Sliders,
   Sparkles,
-  Building2
+  Building2,
+  Clock,
+  Factory,
+  Store,
+  Package
 } from 'lucide-react';
 
 interface OwnerDashboardProps {
@@ -54,7 +58,7 @@ export default function OwnerDashboard({
     .reduce((sum, o) => sum + o.totalAmount, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative select-none">
+    <div className="h-full w-full bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative overflow-hidden select-none">
       
       {/* Admin header */}
       <header className="bg-slate-950 text-white px-4 py-4.5 sticky top-0 z-20 flex items-center justify-between shadow-lg">
@@ -81,7 +85,7 @@ export default function OwnerDashboard({
       </header>
 
       {/* Main Command Workspace */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-24">
+      <main className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-8">
         
         {/* Admin overview stats board */}
         <div className="bg-gradient-to-br from-indigo-900 to-slate-950 rounded-3xl p-5 text-white shadow-lg space-y-4">
@@ -103,20 +107,20 @@ export default function OwnerDashboard({
           </div>
 
           <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/5 text-center">
-            <div className="bg-white/5 p-2 rounded-xl">
-              <span className="text-xl">⏳</span>
+            <div className="bg-white/5 p-2 rounded-xl flex flex-col justify-center">
+              <Clock className="w-5 h-5 mx-auto text-yellow-300 mb-0.5 animate-pulse" />
               <span className="text-[10px] block font-mono font-bold mt-1 text-yellow-300">{pendingUsers.length} Pend</span>
             </div>
-            <div className="bg-white/5 p-2 rounded-xl">
-              <span className="text-xl">🏭</span>
+            <div className="bg-white/5 p-2 rounded-xl flex flex-col justify-center">
+              <Factory className="w-5 h-5 mx-auto text-amber-300 mb-0.5" />
               <span className="text-[10px] block font-mono font-bold mt-1 text-amber-300">{allUsers.filter(u=>u.role==='Seller').length} Sell</span>
             </div>
-            <div className="bg-white/5 p-2 rounded-xl">
-              <span className="text-xl">🏪</span>
+            <div className="bg-white/5 p-2 rounded-xl flex flex-col justify-center">
+              <Store className="w-5 h-5 mx-auto text-emerald-300 mb-0.5" />
               <span className="text-[10px] block font-mono font-bold mt-1 text-emerald-300">{allUsers.filter(u=>u.role==='Dukandar').length} Dukan</span>
             </div>
-            <div className="bg-white/5 p-2 rounded-xl">
-              <span className="text-xl">📦</span>
+            <div className="bg-white/5 p-2 rounded-xl flex flex-col justify-center">
+              <Package className="w-5 h-5 mx-auto text-indigo-300 mb-0.5" />
               <span className="text-[10px] block font-mono font-bold mt-1 text-indigo-300">{allProducts.length} SKU</span>
             </div>
           </div>
