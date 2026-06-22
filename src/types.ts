@@ -22,6 +22,7 @@ export interface Product {
   category: string;
   image: string;
   videoUrl?: string;
+  unit?: string;
   deliveryAreas: {
     cities: string[];
     pincodes: string[];

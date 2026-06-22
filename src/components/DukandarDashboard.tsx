@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Product, Order, UserProfile, Category } from '../types';
 import { CATEGORIES } from '../data';
+import ProductDetailsPage from './ProductDetailsPage';
 import {
   Search,
   ShoppingCart,
@@ -38,6 +39,7 @@ export default function DukandarDashboard({
   const [activeTab, setActiveTab] = useState<'marketplace' | 'orders' | 'profile'>('marketplace');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Cart management (item matching)
   const [orderQuantity, setOrderQuantity] = useState<{ [prodId: string]: number }>({});
@@ -124,6 +126,25 @@ export default function DukandarDashboard({
     // Redirect to orders
     setActiveTab('orders');
   };
+
+  if (selectedProduct) {
+    return (
+      <ProductDetailsPage
+        product={selectedProduct}
+        allProducts={products}
+        currentUser={currentUser}
+        onNavigateToLogin={() => {}}
+        onNavigateToRegister={() => {}}
+        onBack={() => setSelectedProduct(null)}
+        onPlaceOrder={(order) => {
+          onPlaceOrder(order);
+          setActiveTab('orders');
+          setSelectedProduct(null);
+        }}
+        onSelectProduct={(p) => setSelectedProduct(p)}
+      />
+    );
+  }
 
   return (
     <div className="h-full w-full bg-slate-50 max-w-md mx-auto flex flex-col justify-between relative overflow-hidden select-none">
@@ -239,7 +260,7 @@ export default function DukandarDashboard({
                         className="bg-white rounded-3xl border border-slate-100 p-4 shadow-sm flex flex-col justify-between hover:border-slate-300 transition-colors relative overflow-hidden"
                       >
                         {/* Upper image and meta */}
-                        <div className="flex gap-4.5">
+                        <div className="flex gap-4.5 cursor-pointer hover:opacity-90 active:scale-[0.99] transition-all" onClick={() => setSelectedProduct(p)}>
                           <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shrink-0 relative">
                             <img
                               src={p.image}

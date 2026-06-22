@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
+import ProductDetailsPage from './ProductDetailsPage';
 import {
   Menu,
   X,
@@ -173,9 +174,13 @@ export default function PublicMarketplace({
       id: product.id || `p-${Date.now()}`,
       name: product.name,
       price: product.price,
-      unit: product.unit || 'Per Unit',
-      stock: product.stock || '100 Units',
-      seller: product.seller || 'Verified Wholesaler',
+      unit: product.unit || 'Pack',
+      stock: product.stock || '120 Units',
+      stockQuantity: product.stockQuantity !== undefined ? product.stockQuantity : product.stock ? parseInt(product.stock) : 120,
+      seller: product.seller || product.sellerName || 'Verified Wholesaler',
+      sellerName: product.sellerName || product.seller || 'Verified Wholesaler',
+      sellerId: product.sellerId || 'seller-default',
+      status: product.status || (product.stockQuantity === 0 ? 'Sold Out' : 'Active'),
       verified: product.verified !== undefined ? product.verified : true,
       image: product.image,
       category: product.category || 'Wholesale Goods',
@@ -383,231 +388,15 @@ export default function PublicMarketplace({
       </div>
 
       {selectedProductDetails ? (
-        <section className="py-6 px-4 max-w-7xl mx-auto animate-fade-in">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-6 bg-white py-3 px-4 rounded-xl border border-slate-100 shadow-3xs">
-            <button
-              onClick={() => setSelectedProductDetails(null)}
-              className="text-emerald-600 hover:text-emerald-705 font-extrabold flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              ← Back to Wholesale Market
-            </button>
-            <span>/</span>
-            <span className="capitalize font-semibold text-slate-400">{selectedProductDetails.category || 'Mandi Catalogs'}</span>
-            <span>/</span>
-            <span className="font-extrabold text-slate-800 line-clamp-1">{selectedProductDetails.name}</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Box: Product Image & Standard Badging */}
-            <div className="md:col-span-5 bg-white rounded-3xl p-4 border border-slate-150 shadow-sm space-y-4">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-50 border border-slate-100">
-                <img
-                  src={selectedProductDetails.image}
-                  alt={selectedProductDetails.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-extrabold py-1 px-2.5 rounded-lg">
-                  Mandi Dispatch Active
-                </div>
-                <div className="absolute top-3 right-3 bg-emerald-650 text-white text-[10px] font-extrabold py-1 px-2.5 rounded-lg shadow-md">
-                  STOCK: {selectedProductDetails.stock || '120 Units'}
-                </div>
-              </div>
-
-              {/* B2B Sourcing Badges */}
-              <div className="pt-2 grid grid-cols-1 gap-2.5 text-xs text-slate-600 font-semibold font-sans">
-                <div className="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                    <Truck className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-slate-900 text-[11px]">Direct Same-Day Transit</p>
-                    <p className="text-[10px] text-slate-400">Leaves Meerut Warehouse directly</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                    <CheckCircle className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-slate-900 text-[11px]">100% Quality Mandi Shield</p>
-                    <p className="text-[10px] text-slate-400">No adulteration, guaranteed net weight</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Box: Product Detail Description, Margin Slider Calculator, Buying buttons */}
-            <div className="md:col-span-7 bg-white rounded-3xl p-6 border border-slate-150 shadow-sm space-y-6 text-left">
-              
-              {/* Category, Trust, Title */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black py-1 px-3 rounded-full uppercase tracking-wider border border-emerald-100">
-                    {selectedProductDetails.category || 'Mandi Catalog'}
-                  </span>
-                  <div className="flex items-center gap-1 text-slate-500 text-xs font-bold">
-                    <span>Supplied by:</span>
-                    <strong className="text-slate-800">{selectedProductDetails.seller}</strong>
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  </div>
-                </div>
-
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-sans leading-tight">
-                  {selectedProductDetails.name}
-                </h1>
-                
-                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
-                  {selectedProductDetails.description}
-                </p>
-              </div>
-
-              {/* LIVE PRICING & QUANTITY CONFIGURATION */}
-              <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 grid grid-cols-2 gap-4 items-center">
-                <div className="text-left">
-                  <span className="text-[9px] text-slate-400 uppercase font-bold block">Wholesale Rate</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-black text-emerald-650">₹{selectedProductDetails.price}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">/ {selectedProductDetails.unit || 'Bag'}</span>
-                  </div>
-                  <p className="text-[9px] text-slate-450 mt-1 font-semibold">* Rate is exclusive of GST & transit toll</p>
-                </div>
-
-                {/* Counter */}
-                <div className="space-y-1.5 text-right">
-                  <span className="text-[9px] text-slate-400 uppercase font-bold block text-right">Select Trade Quantity</span>
-                  <div className="inline-flex items-center gap-2 bg-white rounded-xl p-1 border border-slate-200">
-                    <button
-                      onClick={() => setProductDetailQty(prev => Math.max(10, prev - 10))}
-                      className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-850 text-xs flex items-center justify-center font-bold border border-slate-150 shadow-3xs cursor-pointer"
-                    >
-                      <Minus className="w-3 h-3 text-slate-600" />
-                    </button>
-                    <span className="text-[11px] font-black font-mono text-slate-900 px-1 min-w-16 text-center">
-                      {productDetailQty} Units
-                    </span>
-                    <button
-                      onClick={() => setProductDetailQty(prev => prev + 10)}
-                      className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-850 text-xs flex items-center justify-center font-bold border border-slate-150 shadow-3xs cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3 text-slate-600" />
-                    </button>
-                  </div>
-                  <p className="text-[9px] text-amber-800 font-extrabold block text-right">Min wholesale trade order: 10 units</p>
-                </div>
-              </div>
-
-              {/* INTERACTIVE B2B DUKANDAR MARGIN PREVIEW CALCULATOR */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3.5 text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-slate-800 font-bold text-xs uppercase tracking-tight">
-                    <Coins className="w-4 h-4 text-amber-500" />
-                    <span>Dukandar Profit Calculator</span>
-                  </div>
-                  <span className="bg-amber-100 text-amber-800 text-[9px] font-extrabold px-2 py-0.5 rounded-md">
-                    Target {profitMarkupPercent}% Markup
-                  </span>
-                </div>
-
-                <p className="text-[10px] text-slate-450 leading-normal font-semibold">
-                  Set the markup you want to keep at your local shop and instantly preview your high-profit margin calculation:
-                </p>
-
-                {/* Markup range slider or quick selection tags */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {[10, 15, 20, 25, 30].map(val => (
-                    <button
-                      key={val}
-                      onClick={() => setProfitMarkupPercent(val)}
-                      className={`text-[10px] font-black py-1 px-3 rounded-lg border transition-all cursor-pointer ${
-                        profitMarkupPercent === val
-                          ? 'bg-amber-400 border-amber-300 text-slate-950 font-black shadow-3xs scale-105'
-                          : 'bg-white border-slate-200 text-slate-505 hover:bg-slate-100'
-                      }`}
-                    >
-                      +{val}% Margin
-                    </button>
-                  ))}
-                </div>
-
-                {/* Live math projection readout */}
-                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-dashed border-slate-205 text-xs text-left">
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-slate-400 font-bold block">Wholesale Cost (Total)</span>
-                    <strong className="font-extrabold text-slate-800 text-xs font-mono">₹{selectedProductDetails.price * productDetailQty}</strong>
-                  </div>
-                  
-                  <div className="space-y-0.5 text-right">
-                    <span className="text-[10px] text-slate-400 font-bold block text-right">Profit Margin per Pack</span>
-                    <strong className="font-extrabold text-emerald-600 text-xs font-mono">+₹{Math.round(selectedProductDetails.price * (profitMarkupPercent / 100))}</strong>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] text-slate-400 font-bold block">Recommended Retail Rate</span>
-                    <strong className="font-extrabold text-slate-800 text-xs font-mono">₹{Math.round(selectedProductDetails.price * (1 + profitMarkupPercent / 100))} / {selectedProductDetails.unit || 'Bag'}</strong>
-                  </div>
-
-                  <div className="space-y-0.5 text-right bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/10">
-                    <span className="text-[9px] text-emerald-800 uppercase font-black block text-right font-sans">Total Profit Earned</span>
-                    <strong className="text-sm font-black text-emerald-700 font-mono text-right block">
-                      +₹{Math.round(selectedProductDetails.price * (profitMarkupPercent / 100) * productDetailQty)}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* ACTIONS: B2B LOGIN GATE DISPATCH TRIGGER */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  onClick={() => displayAuthGate(selectedProductDetails.name, selectedProductDetails.price, selectedProductDetails.seller)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 border border-slate-200 shadow-3xs"
-                >
-                  <ShoppingBag className="w-4 h-4 text-slate-500" />
-                  <span>Add to B2B Cart</span>
-                </button>
-
-                <button
-                  onClick={() => displayAuthGate(selectedProductDetails.name, selectedProductDetails.price, selectedProductDetails.seller)}
-                  className="bg-emerald-600 hover:bg-emerald-750 text-white font-black text-xs py-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-650/15"
-                >
-                  <Truck className="w-4 h-4 text-emerald-250 animate-bounce" />
-                  <span>Wholesale Buy Now</span>
-                </button>
-              </div>
-
-              {/* SPECIFICATIONS ADVANCED SPECS */}
-              <div className="pt-2 text-left">
-                <h4 className="text-[11px] uppercase font-mono tracking-wider font-extrabold text-slate-400 mb-2">Technical B2B Specifications</h4>
-                <div className="border border-slate-150 rounded-2xl overflow-hidden divide-y divide-slate-155 text-[11px]">
-                  <div className="grid grid-cols-3 p-2.5 bg-slate-50/50">
-                    <span className="text-slate-400 font-bold">Standard SKU Code</span>
-                    <span className="col-span-2 font-mono font-bold text-slate-800 uppercase">KB-{selectedProductDetails.id}</span>
-                  </div>
-                  <div className="grid grid-cols-3 p-2.5">
-                    <span className="text-slate-400 font-bold">Minimum Batch</span>
-                    <span className="col-span-2 font-bold text-slate-800">10 standard factory packets / weight bags</span>
-                  </div>
-                  <div className="grid grid-cols-3 p-2.5 bg-slate-50/50">
-                    <span className="text-slate-400 font-bold">Seller Verification</span>
-                    <span className="col-span-2 font-bold text-emerald-700 flex items-center gap-1">
-                      <span>GST Invoiced & Trade Verified</span>
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 p-2.5">
-                    <span className="text-slate-400 font-bold">Mandi Logistics Status</span>
-                    <span className="col-span-2 font-semibold text-slate-600 text-left">Active - Ships within average of 4-6 hours to Meerut NCR</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
+        <ProductDetailsPage
+          product={selectedProductDetails}
+          allProducts={products}
+          currentUser={null}
+          onNavigateToLogin={onNavigateToLogin}
+          onNavigateToRegister={onNavigateToRegister}
+          onBack={() => setSelectedProductDetails(null)}
+          onSelectProduct={(p) => handleOpenProductDetails(p)}
+        />
       ) : (
         <>
           {/* SECTION 3: HERO BANNER (Meesho style layout flat) */}
