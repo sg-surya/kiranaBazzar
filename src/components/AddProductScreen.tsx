@@ -28,6 +28,14 @@ export default function AddProductScreen({
   const [videoUrl, setVideoUrl] = useState('');
   const [status, setStatus] = useState<'Active' | 'Inactive' | 'Sold Out'>('Active');
   
+  // Custom specifications & bulk delivery details
+  const [unit, setUnit] = useState('Per Bag');
+  const [brand, setBrand] = useState('Premium B2B');
+  const [weight, setWeight] = useState('25 Kg');
+  const [packaging, setPackaging] = useState('Gunny Bag / Sack');
+  const [minMOQ, setMinMOQ] = useState<number>(5);
+  const [specifications, setSpecifications] = useState('High nutritional value, moisture-proof packed, clean graded grain.');
+  
   // Delivery areas
   const [selectedCities, setSelectedCities] = useState<string[]>(['Delhi']);
   const [pincodeInput, setPincodeInput] = useState('');
@@ -47,6 +55,12 @@ export default function AddProductScreen({
       setStatus(editingProduct.status);
       setSelectedCities(editingProduct.deliveryAreas?.cities || []);
       setPincodes(editingProduct.deliveryAreas?.pincodes || []);
+      setUnit(editingProduct.unit || 'Per Bag');
+      setBrand(editingProduct.brand || 'Premium B2B');
+      setWeight(editingProduct.weight || '25 Kg');
+      setPackaging(editingProduct.packaging || 'Gunny Bag / Sack');
+      setMinMOQ(editingProduct.minMOQ || 5);
+      setSpecifications(editingProduct.specifications || 'High nutritional value, moisture-proof packed, clean graded grain.');
     } else {
       // Default image to first preset
       setImage(MOCK_PRODUCT_PRESETS[0].image);
@@ -118,6 +132,12 @@ export default function AddProductScreen({
       category,
       image: image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400',
       videoUrl: videoUrl.trim() || undefined,
+      unit,
+      brand,
+      weight,
+      packaging,
+      minMOQ: Number(minMOQ),
+      specifications: specifications.trim(),
       deliveryAreas: {
         cities: selectedCities,
         pincodes: pincodes
@@ -304,6 +324,103 @@ export default function AddProductScreen({
               />
             </div>
             
+          </div>
+
+          {/* Detailed B2B Specifications (Wholesale packaging, min MOQ, brand) */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-4">
+            <h3 className="text-xs font-black uppercase text-slate-400 tracking-wide flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-500" /> Technical B2B Specifications
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                  Brand Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="eg. Fortune, Tata"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                  Pack Unit *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="eg. Per Sack, Per Bag, Per Box"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-900 font-bold focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                  Net Weight per Pack *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="eg. 25 Kg, 1 Litre"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                  Packaging Style *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="eg. Gunny Bag, Carton"
+                  value={packaging}
+                  onChange={(e) => setPackaging(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                  Minimum Order Quantity (MOQ Packs) *
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  required
+                  value={minMOQ}
+                  onChange={(e) => setMinMOQ(Number(e.target.value))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-900 font-bold font-mono focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">
+                Technical Specifications & Quality *
+              </label>
+              <textarea
+                rows={2}
+                required
+                placeholder="eg. Organic, Sortex cleaned grain, max 12% moisture, double-sealed pack."
+                value={specifications}
+                onChange={(e) => setSpecifications(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1.5 focus:ring-emerald-500 focus:bg-white transition-all resize-none font-medium"
+              />
+            </div>
           </div>
 
           {/* Media / Asset Container (Meesho/Blinkit style) */}

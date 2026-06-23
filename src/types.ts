@@ -11,6 +11,12 @@ export interface UserProfile {
   role: UserRole;
   approvalStatus: ApprovalStatus;
   createdAt: string;
+  onboarded?: boolean;
+  shopPhoto?: string;
+  deliverableCities?: string[];
+  deliverablePincodes?: string[];
+  gstNumber?: string;
+  minOrderValue?: number;
 }
 
 export interface Product {
@@ -23,6 +29,11 @@ export interface Product {
   image: string;
   videoUrl?: string;
   unit?: string;
+  brand?: string;
+  weight?: string;
+  packaging?: string;
+  minMOQ?: number;
+  specifications?: string;
   deliveryAreas: {
     cities: string[];
     pincodes: string[];

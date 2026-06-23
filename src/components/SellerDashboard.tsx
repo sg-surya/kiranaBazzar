@@ -4,6 +4,7 @@ import { CATEGORIES } from '../data';
 import ProductListScreen from './ProductListScreen';
 import InventoryScreen from './InventoryScreen';
 import AddProductScreen from './AddProductScreen';
+import { updateUserProfile } from '../services/db';
 import {
   LayoutDashboard,
   Box,
@@ -640,13 +641,22 @@ export default function SellerDashboard({
         {/* TABS 6: SELLER PROFILE */}
         {activeTab === 'profile' && (
           <div className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-5 animate-fade-in select-none">
-            <div className="text-center pb-3 border-b border-slate-100">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-extrabold text-2xl mx-auto">
-                🏭
+            {currentUser.shopPhoto ? (
+              <div className="w-full h-32 rounded-2xl overflow-hidden mb-3 relative">
+                 <img src={currentUser.shopPhoto} alt="Shop Banner" className="w-full h-full object-cover" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex items-end p-3">
+                   <h3 className="font-extrabold text-white text-lg">{currentUser.name}</h3>
+                 </div>
               </div>
-              <h3 className="font-extrabold text-slate-800 text-lg mt-3">{currentUser.name}</h3>
-              <p className="text-xs text-slate-400 font-medium">Wholesale Business Owner</p>
-            </div>
+            ) : (
+              <div className="text-center pb-3 border-b border-slate-100">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-extrabold text-2xl mx-auto">
+                  🏭
+                </div>
+                <h3 className="font-extrabold text-slate-800 text-lg mt-3">{currentUser.name}</h3>
+                <p className="text-xs text-slate-400 font-medium">Wholesale Business Owner</p>
+              </div>
+            )}
 
             <div className="space-y-3.5 text-xs text-slate-600 font-medium">
               <div className="flex justify-between py-1.5 border-b border-slate-50">
@@ -662,11 +672,38 @@ export default function SellerDashboard({
                 <span className="text-slate-800 font-bold text-emerald-600">✓ {currentUser.whatsapp}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-50">
-                <span className="text-slate-400 font-bold">WAREHOUSE PINCODE</span>
-                <span className="text-slate-800 font-bold font-mono">{currentUser.pincode}</span>
+                <span className="text-slate-400 font-bold">GSTIN NUMBER</span>
+                <span className="text-slate-800 font-bold font-mono">{currentUser.gstNumber || 'Not provided'}</span>
               </div>
+              <div className="flex justify-between py-1.5 border-b border-slate-50">
+                <span className="text-slate-400 font-bold">MIN ORDER VALUE</span>
+                <span className="text-slate-800 font-bold font-mono">₹{currentUser.minOrderValue || 0}</span>
+              </div>
+              
+              <div className="py-1.5 border-b border-slate-50">
+                <span className="text-slate-400 font-bold block mb-1">DELIVERABLE CITIES</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {(currentUser.deliverableCities || []).map(city => (
+                    <span key={city} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                      {city}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="py-1.5 border-b border-slate-50">
+                <span className="text-slate-400 font-bold block mb-1">DELIVERABLE PINCODES</span>
+                <div className="flex flex-wrap gap-1 mt-1 font-mono">
+                  {(currentUser.deliverablePincodes || []).map(pin => (
+                    <span key={pin} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                      {pin}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               <div className="py-1.5">
-                <span className="text-slate-400 font-bold block mb-1">MAIN OFFICE ADDRESS</span>
+                <span className="text-slate-400 font-bold block mb-1">MAIN WAREHOUSE ADDRESS</span>
                 <p className="text-slate-800 leading-normal font-bold bg-slate-50 p-2.5 rounded-xl border border-slate-50">
                   {currentUser.address}
                 </p>

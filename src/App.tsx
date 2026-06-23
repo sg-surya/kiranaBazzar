@@ -14,6 +14,7 @@ import LoginScreen from './components/LoginScreen';
 import RegisterScreen from './components/RegisterScreen';
 import PendingApprovalScreen from './components/PendingApprovalScreen';
 import SellerDashboard from './components/SellerDashboard';
+import SellerOnboarding from './components/SellerOnboarding';
 import OwnerDashboard from './components/OwnerDashboard';
 import DukandarDashboard from './components/DukandarDashboard';
 import PublicMarketplace from './components/PublicMarketplace';
@@ -360,18 +361,28 @@ export default function App() {
                 onResetSystemData={handleResetSystemData}
               />
             ) : currentUser.role === 'Seller' ? (
-              <SellerDashboard
-                currentUser={currentUser}
-                products={allProducts}
-                orders={allOrders}
-                onLogout={handleLogout}
-                onAddProduct={handleSaveProduct}
-                onDeleteProduct={handleDeleteProduct}
-                onUpdateProductStock={handleUpdateProductStock}
-                onUpdateProductStatus={handleUpdateProductStatus}
-                onUpdateOrderStatus={handleUpdateOrderStatus}
-                onUpdateDeliveryAreas={handleUpdateDeliveryAreas}
-              />
+              !currentUser.onboarded ? (
+                <SellerOnboarding
+                  currentUser={currentUser}
+                  onOnboardingComplete={(updatedUser) => {
+                    setCurrentUser(updatedUser);
+                    localStorage.setItem('kb_current_user', JSON.stringify(updatedUser));
+                  }}
+                />
+              ) : (
+                <SellerDashboard
+                  currentUser={currentUser}
+                  products={allProducts}
+                  orders={allOrders}
+                  onLogout={handleLogout}
+                  onAddProduct={handleSaveProduct}
+                  onDeleteProduct={handleDeleteProduct}
+                  onUpdateProductStock={handleUpdateProductStock}
+                  onUpdateProductStatus={handleUpdateProductStatus}
+                  onUpdateOrderStatus={handleUpdateOrderStatus}
+                  onUpdateDeliveryAreas={handleUpdateDeliveryAreas}
+                />
+              )
             ) : (
               /* DUKANDAR / BUYER */
               <DukandarDashboard
